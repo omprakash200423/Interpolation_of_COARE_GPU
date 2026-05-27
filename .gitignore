@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Conda
+.env
+.venv/
+
+# Large project folders
+data/
+outputs/
+logs/
+plots/
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Scientific files
+*.nc
+*.grib
+*.h5
+*.zarr
+
+# OS files
+Thumbs.db
+.DS_Store
+*.prof
