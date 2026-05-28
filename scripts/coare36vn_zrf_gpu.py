@@ -241,28 +241,38 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
     # if inputs are already ndarray float this does nothing
     # otherwise copies are created in the local namespace
     # .flatten() return a 1D version in case single value input is already an array (array([[]]) vs array([]))
-    if u.size ==1 and t.size ==1: 
-        u = np.copy(np.asarray([u], dtype=float)).flatten()
-        zu = np.copy(np.asarray([zu], dtype=float)).flatten()
-        t = np.copy(np.asarray([t], dtype=float)).flatten()
-        zt = np.copy(np.asarray([zt], dtype=float)).flatten()
-        rh = np.copy(np.asarray([rh], dtype=float)).flatten()
-        zq = np.copy(np.asarray([zq], dtype=float)).flatten()
-        P = np.copy(np.asarray([P], dtype=float)).flatten()
-        ts = np.copy(np.asarray([ts], dtype=float)).flatten()
-        sw_dn = np.copy(np.asarray([sw_dn], dtype=float)).flatten()
-        lw_dn = np.copy(np.asarray([lw_dn], dtype=float)).flatten()
-        lat = np.copy(np.asarray([lat], dtype=float)).flatten()
-        lon = np.copy(np.asarray([lon], dtype=float)).flatten()
-        jd = np.copy(np.asarray([jd], dtype=float)).flatten()
-        zi = np.copy(np.asarray([zi], dtype=float)).flatten()
-        rain = np.copy(np.asarray([rain], dtype=float)).flatten()
-        Ss = np.copy(np.asarray([Ss], dtype=float)).flatten()
-        zrf_u = np.copy(np.asarray([zrf_u], dtype=float)).flatten()
-        zrf_t = np.copy(np.asarray([zrf_t], dtype=float)).flatten()
-        zrf_q = np.copy(np.asarray([zrf_q], dtype=float)).flatten()
+    if cupy.size(u) == 1 and cupy.size(t) == 1:
+
+        u = cupy.asarray([u], dtype=float).flatten()
+        zu = cupy.asarray([zu], dtype=float).flatten()
+
+        t = cupy.asarray([t], dtype=float).flatten()
+        zt = cupy.asarray([zt], dtype=float).flatten()
+
+        rh = cupy.asarray([rh], dtype=float).flatten()
+        zq = cupy.asarray([zq], dtype=float).flatten()
+
+        P = cupy.asarray([P], dtype=float).flatten()
+        ts = cupy.asarray([ts], dtype=float).flatten()
+
+        sw_dn = cupy.asarray([sw_dn], dtype=float).flatten()
+        lw_dn = cupy.asarray([lw_dn], dtype=float).flatten()
+
+        lat = cupy.asarray([lat], dtype=float).flatten()
+        lon = cupy.asarray([lon], dtype=float).flatten()
+
+        jd = cupy.asarray([jd], dtype=float).flatten()
+
+        zi = cupy.asarray([zi], dtype=float).flatten()
+        rain = cupy.asarray([rain], dtype=float).flatten()
+
+        Ss = cupy.asarray([Ss], dtype=float).flatten()
+
+        zrf_u = cupy.asarray([zrf_u], dtype=float).flatten()
+        zrf_t = cupy.asarray([zrf_t], dtype=float).flatten()
+        zrf_q = cupy.asarray([zrf_q], dtype=float).flatten()
     
-    N = np.size(u)
+    N = cupy.size(u)
     jcool = jcoolx * cupy.ones(N)
     
     if cp is not None and cp.size == 1:
@@ -340,8 +350,8 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
 
     Al35 = 2.1e-05 * (tsw + 3.2) ** 0.79
     # Al0 = (2.2 * real((tsw - 1) ** 0.82) - 5) * 1e-05
-    Al0_i=(tsw - 1) ** 0.82
-    Al0 = (2.2 * Al0_i.real - 5) * 1e-05
+    safe_tsw = cupy.maximum(tsw - 1, 0)
+    Al0 = (2.2 * safe_tsw ** 0.82 - 5) * 1e-05
     Al = Al0 + cupy.multiply((Al35 - Al0),Ss) / 35
     ###################
     bets = 0.00075
@@ -434,7 +444,7 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
     zetau = cupy.multiply(cupy.multiply(CC,Ribu),(1 + 27 / 9 * Ribu / CC))
     k50 = cupy.where(zetau > 50)
     k = cupy.where(Ribu < 0)
-    if np.size(Ribcu) == 1:
+    if Ribcu.size == 1:
         zetau[k] = cupy.multiply(CC[k],Ribu[k]) / (1 + Ribu[k] / Ribcu)
         del k
     else:
@@ -479,16 +489,15 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
     zoS = cupy.multiply(cupy.multiply(sigH,Ad),(usr / cp) ** Bd)
     charnS = cupy.multiply(zoS,grav) / usr / usr
     nits = 10
-    rt = cupy.zeros(u.size)
-    rq = cupy.zeros(u.size)
-    
     charn = cupy.copy(charnC)  # creates a deep copy of charnC - if shallow copy (= only) charnC may change too below!
     ii = cupy.where(cupy.logical_not(cupy.isnan(cp)))
     charn[ii] = charnS[ii]
     #**************  bulk loop ************************************************
-    gust = 0.2 * cupy.ones(N)
-    xlamx = 6.0 * cupy.ones(N)
     for i in cupy.arange(1, nits + 1):
+        rt = cupy.zeros(u.size)
+        rq = cupy.zeros(u.size)
+        gust = 0.2 * cupy.ones(N)
+        xlamx = 6.0 * cupy.ones(N)
         zeta = cupy.multiply(cupy.multiply(cupy.multiply(von,grav),zu) / ta,(tsr + cupy.multiply(0.61 * ta,qsr))) / (usr ** 2)
         L = zu / zeta
         zo = cupy.multiply(charn,usr ** 2.0) / grav + 0.11 * visa / usr
@@ -542,7 +551,7 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
         # for the flux. The models do u v w, and then compute vector avg to get
         # speed, so we've done the same thing. coare alg input is the magnitude
         # of the mean vector wind relative to water.
-        if np.size(zi) == 1:
+        if zi.size == 1:
             gust[k] = Beta * (cupy.multiply(Bf[k],zi)) ** 0.333
             del k
         else:
@@ -754,10 +763,17 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
     # lw_net = 0.97*(lw_dn_best - 5.67e-8*(Tskin+C2K).^4);
     
     # adjust A output as desired:
-    out = cupy.array([usr,tau,hsb,hlb,hbb,hsbb,hlwebb,tsr,qsr,zo,zot,zoq,Cd,Ch,Ce,L,zeta,dT_skinx,dq_skinx,dz_skin,Urf,Trf,Qrf,RHrf,UrfN,TrfN,QrfN,lw_net,sw_net,Le,rhoa,UN,U10,U10N,Cdn_10,Chn_10,Cen_10,hrain,Qs,Evap,T10,T10N,Q10,Q10N,RH10,P10,rhoa10,gust,wc_frac,Edis])
-    #                1   2   3   4   5   6    7      8   9  10  11  12 13 14 15 16  17   18       19        20    21  22  23  24   25   26   27     28    29   30  31  32 33   34    35     36    37      38  39  40   41  42   43   44   45  46   47    48     49    50
-    A = cupy.column_stack(out)
-    return A
+    out = cupy.stack([
+        usr,tau,hsb,hlb,hbb,hsbb,hlwebb,tsr,qsr,
+        zo,zot,zoq,Cd,Ch,Ce,L,zeta,dT_skinx,
+        dq_skinx,dz_skin,Urf,Trf,Qrf,RHrf,UrfN,
+        TrfN,QrfN,lw_net,sw_net,Le,rhoa,UN,U10,
+        U10N,Cdn_10,Chn_10,Cen_10,hrain,Qs,
+        Evap,T10,T10N,Q10,Q10N,RH10,P10,
+        rhoa10,gust,wc_frac,Edis
+    ], axis=0)
+
+    return out
     
 #------------------------------------------------------------------------------
     
@@ -1092,15 +1108,22 @@ def load_data():
 #        return cupy.full(50, cupy.nan)
 
 ######## Wrapper is corrected as per ChatGPT suggestions are below ####
+ZI = cupy.array([600.0], dtype=float)
+RAIN = cupy.array([0.0], dtype=float)
+SS = cupy.array([35.0], dtype=float)
+
+CP = cupy.array([cupy.nan], dtype=float)
+SIGH = cupy.array([cupy.nan], dtype=float)
+
 def coare_wrapper(u, t, rh, P, ts, sw_dn, lw_dn, lat, lon, jd):
 
     zu, zt, zq = 10.0, 2.0, 2.0
     zrf_u, zrf_t, zrf_q = 10.0, 10.0, 10.0
-    zi = np.array([600.0])
-    rain = np.array([0.0])
-    Ss = np.array([35.0])
-    cp = np.array([np.nan])
-    sigH = np.array([np.nan])
+    zi = ZI
+    rain = RAIN
+    Ss = SS
+    cp = CP
+    sigH = SIGH
 
     try:
         out = coare36vn_zrf_et(
@@ -1112,7 +1135,8 @@ def coare_wrapper(u, t, rh, P, ts, sw_dn, lw_dn, lat, lon, jd):
 
         return out.squeeze()   # ✅ THIS IS THE FIX
 
-    except Exception:
+    except Exception as e:
+        print("COARE ERROR:", e)
         return cupy.full(50, cupy.nan)
 # ------------------------------------------------------------
 # MAIN

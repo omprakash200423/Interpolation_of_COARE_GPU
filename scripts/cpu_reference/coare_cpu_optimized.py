@@ -26,6 +26,7 @@ ds = xr.open_dataset(
         "longitude": 100
     }
 )
+ds = ds.isel(valid_time=slice(0,12))
 ds = ds.compute()
 
 # -----------------------------------
@@ -287,7 +288,7 @@ if __name__ == "__main__":
 
     all_outputs = [[] for _ in range(50)]
 
-    with ProcessPoolExecutor(max_workers=12) as executor:
+    with ProcessPoolExecutor(max_workers=4) as executor:
 
         results = []
 
@@ -314,12 +315,20 @@ if __name__ == "__main__":
     # -----------------------------------
     # SAVE OUTPUT
     # -----------------------------------
-
+    var_names = [
+        "usr","tau","hsb","hlb","hbb","hsbb","hlwebb","tsr","qsr",
+        "zo","zot","zoq","Cd","Ch","Ce","L","zeta","dT_skinx",
+        "dq_skinx","dz_skin","Urf","Trf","Qrf","RHrf","UrfN",
+        "TrfN","QrfN","lw_net","sw_net","Le","rhoa","UN","U10",
+        "U10N","Cdn_10","Chn_10","Cen_10","hrain","Qs",
+        "Evap","T10","T10N","Q10","Q10N","RH10","P10",
+        "rhoa10","gust","wc_frac","Edis"
+    ]
     data_vars = {}
 
     for i in range(50):
 
-        data_vars[f"coare_var_{i+1:02d}"] = (
+        data_vars[var_names[i]] = (
             ("valid_time", "latitude", "longitude"),
             stacked_outputs[i]
         )
@@ -335,7 +344,7 @@ if __name__ == "__main__":
         }
     )
     out_ds.to_netcdf(
-        "../../outputs/coare_all_50_variables.nc"
+        "../../outputs/coare_cpu_output.nc"
     )
     print("\nSUCCESS: COARE processing completed.")
     end_time = time.time()

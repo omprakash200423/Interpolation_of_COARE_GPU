@@ -185,7 +185,7 @@ for i, name in enumerate(output_names):
             .values == 1
         )
 
-        full_grid[t_idx][ocean_mask] = all_results[t_idx, :, i]
+        full_grid[t_idx][ocean_mask] = all_results[t_idx, i, :]
 
     output_ds[name] = (
         ("valid_time", "latitude", "longitude"),
