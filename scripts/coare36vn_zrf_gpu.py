@@ -377,8 +377,9 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
     lat = cupy.asarray(lat)
     lon = cupy.asarray(lon)
     alb,T_sw,solarmax_sw,psi_sw = albedo_vector(sw_dn,jd,lon,lat,eorw='E')
+    sw_dn = cupy.asarray(sw_dn)
+    lw_dn = cupy.asarray(lw_dn)
     sw_net = cupy.multiply((1 - alb),sw_dn)
-    
     # *** for constant albedo:
     # sw_net = 0.945.*sw_dn; # constant albedo correction, positive heating ocean
     
@@ -952,7 +953,7 @@ def albedo_vector(sw_dn = None,jd = None,lon = None,lat = None,eorw = None):
     gamma = 1
     gamma2 = gamma * gamma
     
-    sinpsi = cupy.multiply(cupy.sin(lat), cupy.sin(sd)) - cupy.multiply(cupy.multiply(cupy.cos(lat), cupy.cos(sd)), cupy.cos(h))
+    sinpsi = cupy.multiply(cupy.sin(lat), cupy.sin(sd)) + cupy.multiply(cupy.multiply(cupy.cos(lat), cupy.cos(sd)), cupy.cos(h))
     psi = cupy.multiply(cupy.arcsin(sinpsi),180) / cupy.pi
     solarmax = cupy.asarray(cupy.multiply(SC, sinpsi) / gamma2)
     #solarmax=1380*sinpsi*(0.61+0.20*sinpsi);
@@ -991,7 +992,7 @@ def albedo_vector(sw_dn = None,jd = None,lon = None,lat = None,eorw = None):
                 psi_clip = np.clip(psi, 0, 90)
                 A_index = np.clip(np.rint(psi_clip / 2).astype(int), 0, len(As)-1)
 
-                alb = a[T_index, A_index]
+                alb = a[A_index, T_index]
 
                 negative_mask = psi < 0
 
@@ -999,7 +1000,8 @@ def albedo_vector(sw_dn = None,jd = None,lon = None,lat = None,eorw = None):
                 solarmax[negative_mask] = 0
                 T[negative_mask] = 0
                 psi[negative_mask] = 0
-    
+
+                    
     #disp([num2str(jd) '  ' num2str(sw_dn) '  ' num2str(alb) '  ' num2str(T) '  ' num2str(i) '  ' num2str(j)])
     return alb,T,solarmax,psi
 

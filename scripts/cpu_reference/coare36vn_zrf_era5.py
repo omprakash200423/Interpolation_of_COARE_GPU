@@ -364,7 +364,15 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
     # vary based on sw_dn.
     alb,T_sw,solarmax_sw,psi_sw = albedo_vector(sw_dn,jd,lon,lat,eorw='E')
     sw_net = np.multiply((1 - alb),sw_dn)
-    
+    print("\n--- CPU DEBUG ---")
+    print("alb[:10] =", alb[:10])
+    print("type(alb) =", type(alb))
+    print("sw_dn[:10] =", sw_dn[:10])
+    print("sw_net[:10] =", sw_net[:10])
+    print("T_index[:10] =", T_index[:10])
+    print("A_index[:10] =", A_index[:10])
+    print(type(T_index))
+    print(type(A_index))
     # *** for constant albedo:
     # sw_net = 0.945.*sw_dn; # constant albedo correction, positive heating ocean
     

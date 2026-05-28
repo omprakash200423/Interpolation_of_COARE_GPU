@@ -75,6 +75,16 @@ for t_idx in range(ds.sizes["valid_time"]):
 
     sw_dn = sw[valid]
     lw_dn = lw[valid]
+    # -----------------------------------
+    # RADIATION UNIT CONVERSION
+    # -----------------------------------
+
+    if np.nanmedian(sw_dn) > 1500 or np.nanmedian(lw_dn) > 1500:
+        sw_dn = sw_dn / 3600.0
+        lw_dn = lw_dn / 3600.0
+
+    sw_dn = np.maximum(sw_dn, 0.0)
+    lw_dn = np.maximum(lw_dn, 0.0)
 
     # -----------------------------------
     # GPU TRANSFER (dynamic variables)
