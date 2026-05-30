@@ -48,9 +48,16 @@ for t_idx in range(ds.sizes["valid_time"]):
 
     year_start = current_time.astype("datetime64[Y]")
 
-    jd_value = (
+    day_of_year = (
         current_time.astype("datetime64[D]") - year_start
     ).astype(int) + 1
+
+    hour_of_day = (
+        current_time - current_time.astype("datetime64[D]")
+    ) / np.timedelta64(1, "h")
+
+    jd_value = day_of_year + hour_of_day / 24.0
+
 
 # -----------------------------------
 # FILTER VALID OCEAN POINTS

@@ -271,6 +271,8 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
         zrf_u = cupy.asarray([zrf_u], dtype=float).flatten()
         zrf_t = cupy.asarray([zrf_t], dtype=float).flatten()
         zrf_q = cupy.asarray([zrf_q], dtype=float).flatten()
+        print("\nCOARE INPUT DEBUG")
+        print("jd =", jd)
     
     N = cupy.size(u)
     jcool = jcoolx * cupy.ones(N)
@@ -953,7 +955,11 @@ def albedo_vector(sw_dn = None,jd = None,lon = None,lat = None,eorw = None):
     gamma = 1
     gamma2 = gamma * gamma
     
-    sinpsi = cupy.multiply(cupy.sin(lat), cupy.sin(sd)) + cupy.multiply(cupy.multiply(cupy.cos(lat), cupy.cos(sd)), cupy.cos(h))
+    sinpsi = cupy.multiply(cupy.sin(lat), cupy.sin(sd)) - \
+         cupy.multiply(
+             cupy.multiply(cupy.cos(lat), cupy.cos(sd)),
+             cupy.cos(h)
+         )
     psi = cupy.multiply(cupy.arcsin(sinpsi),180) / cupy.pi
     solarmax = cupy.asarray(cupy.multiply(SC, sinpsi) / gamma2)
     #solarmax=1380*sinpsi*(0.61+0.20*sinpsi);
@@ -993,14 +999,12 @@ def albedo_vector(sw_dn = None,jd = None,lon = None,lat = None,eorw = None):
                 A_index = np.clip(np.rint(psi_clip / 2).astype(int), 0, len(As)-1)
 
                 alb = a[A_index, T_index]
-
                 negative_mask = psi < 0
 
                 alb[negative_mask] = 0
                 solarmax[negative_mask] = 0
                 T[negative_mask] = 0
                 psi[negative_mask] = 0
-
                     
     #disp([num2str(jd) '  ' num2str(sw_dn) '  ' num2str(alb) '  ' num2str(T) '  ' num2str(i) '  ' num2str(j)])
     return alb,T,solarmax,psi
@@ -1128,6 +1132,7 @@ def coare_wrapper(u, t, rh, P, ts, sw_dn, lw_dn, lat, lon, jd):
     sigH = SIGH
 
     try:
+        print("JD entering wrapper =", jd)
         out = coare36vn_zrf_et(
             u, zu, t, zt, rh, zq, P, ts,
             sw_dn, lw_dn, lat, lon, jd,
