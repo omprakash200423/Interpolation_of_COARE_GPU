@@ -998,7 +998,7 @@ def albedo_vector(sw_dn = None,jd = None,lon = None,lat = None,eorw = None):
                 psi_clip = np.clip(psi, 0, 90)
                 A_index = np.clip(np.rint(psi_clip / 2).astype(int), 0, len(As)-1)
 
-                alb = a[A_index, T_index]
+                alb = a[T_index, A_index]
                 negative_mask = psi < 0
 
                 alb[negative_mask] = 0

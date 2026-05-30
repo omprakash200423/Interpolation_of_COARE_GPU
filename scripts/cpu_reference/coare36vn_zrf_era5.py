@@ -364,15 +364,7 @@ def coare36vn_zrf_et(u, zu , t, zt, rh, zq, P, ts, sw_dn, lw_dn, lat, lon,jd, zi
     # vary based on sw_dn.
     alb,T_sw,solarmax_sw,psi_sw = albedo_vector(sw_dn,jd,lon,lat,eorw='E')
     sw_net = np.multiply((1 - alb),sw_dn)
-    print("\n--- CPU DEBUG ---")
-    print("alb[:10] =", alb[:10])
-    print("type(alb) =", type(alb))
-    print("sw_dn[:10] =", sw_dn[:10])
-    print("sw_net[:10] =", sw_net[:10])
-    print("T_index[:10] =", T_index[:10])
-    print("A_index[:10] =", A_index[:10])
-    print(type(T_index))
-    print(type(A_index))
+ 
     # *** for constant albedo:
     # sw_net = 0.945.*sw_dn; # constant albedo correction, positive heating ocean
     
@@ -906,13 +898,7 @@ def albedo_vector(sw_dn = None,jd = None,lon = None,lat = None,eorw = None):
     #solarmax=1380*sinpsi*(0.61+0.20*sinpsi);
     
     T = np.minimum(2,sw_dn / solarmax)
-    print("\nCPU SOLAR DEBUG")
-    print("jd min/max =", np.nanmin(jd), np.nanmax(jd))
-    print("utc min/max =", np.nanmin(utc), np.nanmax(utc))
-    print("psi min/max =", np.nanmin(psi), np.nanmax(psi))
-    print("psi mean =", np.nanmean(psi))
-    print("T min/max =", np.nanmin(T), np.nanmax(T))
-    print("T mean =", np.nanmean(T))
+   
     
     Ts = np.arange(0,1+0.05,0.05)
     As = np.arange(0,90+2,2)
@@ -958,23 +944,8 @@ def albedo_vector(sw_dn = None,jd = None,lon = None,lat = None,eorw = None):
                 else:
                     #       disp('no j found, not assigning alb to anything');
                     pass
-    print("\nCPU ALBEDO STATS")
-    print("min =", np.nanmin(alb))
-    print("max =", np.nanmax(alb))
-    print("mean =", np.nanmean(alb))
-    print("\nCPU PSI STATS")
-    print("psi min =", np.nanmin(psi))
-    print("psi max =", np.nanmax(psi))
-    print("psi mean =", np.nanmean(psi))
+    
 
-    print("\nCPU T STATS")
-    print("T min =", np.nanmin(T))
-    print("T max =", np.nanmax(T))
-    print("T mean =", np.nanmean(T))
-    print("\nCPU PSI STATS")
-    print("psi min =", np.nanmin(psi))
-    print("psi max =", np.nanmax(psi))
-    print("psi mean =", np.nanmean(psi))
     
     #disp([num2str(jd) '  ' num2str(sw_dn) '  ' num2str(alb) '  ' num2str(T) '  ' num2str(i) '  ' num2str(j)])
     return alb,T,solarmax,psi

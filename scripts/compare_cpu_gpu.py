@@ -49,5 +49,31 @@ for var in variables:
         f"CPU_NaN={cpu_nan} | "
         f"GPU_NaN={gpu_nan}"
     )
+# -----------------------------------
+# SW_NET SAMPLE CHECK
+# -----------------------------------
+
+cpu_sw = cpu["sw_net"].values
+gpu_sw = gpu["sw_net"].values
+
+valid = np.isfinite(cpu_sw) & np.isfinite(gpu_sw)
+
+cpu_vals = cpu_sw[valid]
+
+gpu_vals = gpu_sw[valid]
+
+idx = np.where(np.abs(cpu_vals) > 100)[0][:10]
+
+cpu_vals = cpu_vals[idx]
+gpu_vals = gpu_vals[idx]
+
+print("\nSW_NET SAMPLE CHECK\n")
+
+for i in range(len(cpu_vals)):
+    print(
+        f"{i}: CPU={cpu_vals[i]:.6f} "
+        f"GPU={gpu_vals[i]:.6f} "
+        f"DIFF={cpu_vals[i]-gpu_vals[i]:.6f}"
+    )
 
 print("\nComparison completed.")
